@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Сузгадаль — угадай цену квартиры в Суздале</title>
+<meta name="description" content="Игра «Сузгадаль»: листай фото квартир из настоящих объявлений в Суздале, двигай домик-бегунок и угадай цену за сутки.">
+<meta name="theme-color" content="#603302">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="img/bg-suzdal.webp">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Общие SVG-элементы: резной наличник и цветок -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="flower">
+      <circle cx="0" cy="-4.4" r="2.7" fill="#FFCC95"/><circle cx="3.8" cy="-2.2" r="2.7" fill="#FFCC95"/>
+      <circle cx="3.8" cy="2.2" r="2.7" fill="#FFCC95"/><circle cx="0" cy="4.4" r="2.7" fill="#FFCC95"/>
+      <circle cx="-3.8" cy="2.2" r="2.7" fill="#FFCC95"/><circle cx="-3.8" cy="-2.2" r="2.7" fill="#FFCC95"/>
+      <circle r="2.4" fill="#61C6D5" stroke="#603302" stroke-width=".8"/>
+    </g>
+    <pattern id="dent" width="10" height="6" patternUnits="userSpaceOnUse">
+      <path d="M0 0H10L5 6Z" fill="#FFCC95"/>
+    </pattern>
+    <symbol id="crown" viewBox="0 0 320 76">
+      <g fill="#603302" stroke="#FFCC95" stroke-width="1.6" stroke-linejoin="round">
+        <!-- маковки по краям -->
+        <rect x="11" y="40" width="6" height="16"/>
+        <path d="M14 20Q23 31 14 40Q5 31 14 20Z"/>
+        <rect x="303" y="40" width="6" height="16"/>
+        <path d="M306 20Q315 31 306 40Q297 31 306 20Z"/>
+        <!-- фронтон -->
+        <path d="M4 60H44Q76 60 96 44Q118 30 160 30Q202 30 224 44Q244 60 276 60H316V70H4Z"/>
+        <!-- веер -->
+        <g>
+          <ellipse cx="160" cy="16" rx="4.6" ry="15" transform="rotate(-60 160 31)"/>
+          <ellipse cx="160" cy="16" rx="4.6" ry="15" transform="rotate(-40 160 31)"/>
+          <ellipse cx="160" cy="16" rx="4.6" ry="15" transform="rotate(-20 160 31)"/>
+          <ellipse cx="160" cy="16" rx="4.6" ry="15" transform="rotate(20 160 31)"/>
+          <ellipse cx="160" cy="16" rx="4.6" ry="15" transform="rotate(40 160 31)"/>
+          <ellipse cx="160" cy="16" rx="4.6" ry="15" transform="rotate(60 160 31)"/>
+          <ellipse cx="160" cy="16" rx="4.6" ry="15" fill="#FFCC95"/>
+        </g>
+        <circle cx="160" cy="33" r="6" fill="#FFCC95" stroke="#603302"/>
+      </g>
+      <circle cx="160" cy="33" r="2.4" fill="#61C6D5"/>
+      <use href="#flower" x="112" y="50"/>
+      <use href="#flower" x="208" y="50"/>
+      <use href="#flower" x="62" y="55" transform="scale(.8)" style="transform-origin:62px 55px"/>
+      <use href="#flower" x="258" y="55" transform="scale(.8)" style="transform-origin:258px 55px"/>
+      <rect x="4" y="70" width="312" height="6" fill="url(#dent)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- Узорчатые рамки по краям экрана -->
+<div class="frame" aria-hidden="true">
+  <i class="fl"></i><i class="fr"></i><i class="ft"></i><i class="fb"></i>
+  <i class="c c1"></i><i class="c c2"></i><i class="c c3"></i><i class="c c4"></i>
+</div>
+
+<main class="app">
+
+  <!-- ЭКРАН 1. Старт -->
+  <section class="screen start" id="scrStart">
+    <header class="hero">
+      <svg class="crown" viewBox="0 0 320 76"><use href="#crown"/></svg>
+      <h1>Сузгадаль</h1>
+      <p class="tagline">Угадай цену суздальской квартиры</p>
+    </header>
+
+    <div class="card rules">
+      <h2>Как играть</h2>
+      <ol>
+        <li><span>1</span><p>Перед тобой 10 квартир из настоящих объявлений Авито. Листай фото в окошке со ставнями.</p></li>
+        <li><span>2</span><p>Двигай домик-бегунок и выбери цену за сутки.</p></li>
+        <li><span>3</span><p>Жми «Оценить» — узнаешь реальную цену, разницу и баллы (до 1000 за квартиру).</p></li>
+        <li><span>4</span><p>В конце узнаешь, кто ты: Крестьянин, Купец или Барин.</p></li>
+      </ol>
+    </div>
+
+    <div class="start-bottom">
+      <button class="btn big" id="startBtn" type="button">Запуск игры</button>
+      <p class="foot" id="bestLine">Суздаль и окрестности · данные Авито</p>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 2. Игра -->
+  <section class="screen game" id="scrGame" hidden>
+    <header class="top">
+      <div class="top-row">
+        <span class="mini-logo">Сузгадаль</span>
+        <span class="round-label" id="roundLabel">Квартира 1 из 10</span>
+        <span class="score" id="scoreLabel" title="Баллы">★ 0</span>
+      </div>
+      <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-label="Прогресс игры"></div>
+    </header>
+
+    <div class="izba">
+      <svg class="crown" viewBox="0 0 320 76" aria-hidden="true"><use href="#crown"/></svg>
+      <div class="wrow">
+        <div class="shutter left"><i></i><i></i></div>
+        <div class="casing"></div>
+        <div class="opening">
+          <div class="gal" id="gal" tabindex="0" aria-label="Фотографии квартиры"></div>
+          <button class="nav prev" id="prevPhoto" type="button" aria-label="Предыдущее фото">‹</button>
+          <button class="nav next" id="nextPhoto" type="button" aria-label="Следующее фото">›</button>
+          <div class="dots" id="dots"></div>
+          <div class="count" id="photoCount">1/5</div>
+          <div class="glass"></div>
+        </div>
+        <div class="casing"></div>
+        <div class="shutter right"><i></i><i></i></div>
+      </div>
+      <div class="sill"></div>
+    </div>
+
+    <div class="info" id="info">
+      <b id="infoMain">2-к. квартира · 45 м²</b>
+      <span id="infoAddr">Суздаль</span>
+    </div>
+
+    <!-- Выбор цены -->
+    <div class="panel" id="panelGuess">
+      <div class="price-row">
+        <button class="step" id="minus" type="button" aria-label="Меньше на 100 ₽">−</button>
+        <div class="price"><b id="priceVal">6 000</b><span>₽ за сутки</span></div>
+        <button class="step" id="plus" type="button" aria-label="Больше на 100 ₽">+</button>
+      </div>
+      <div class="track-wrap" id="trackWrap">
+        <input type="range" id="slider" min="0" max="100" step="1" value="40" aria-label="Цена за сутки">
+        <div class="flag" id="flag" hidden><span>цена</span></div>
+      </div>
+      <div class="minmax"><span id="minLabel">2 000 ₽</span><span id="maxLabel">20 000 ₽</span></div>
+      <button class="btn" id="rateBtn" type="button">Оценить</button>
+    </div>
+
+    <!-- Результат раунда -->
+    <div class="panel result" id="panelResult" hidden>
+      <div class="res-grid">
+        <div class="cell"><small>Вы назвали</small><b id="rGuess">—</b></div>
+        <div class="cell fact"><small>Реальная цена</small><b id="rReal">—</b></div>
+        <div class="cell diff" id="rDiffCell"><small id="rDiffLabel">Разница</small><b id="rDiff">—</b></div>
+      </div>
+      <div class="res-line">
+        <span class="pts">+<b id="rPts">0</b> <i>баллов</i></span>
+        <em id="rVerdict"></em>
+      </div>
+      <div class="res-actions">
+        <a class="avito" id="rLink" href="#" target="_blank" rel="noopener noreferrer">Объявление на Авито ↗</a>
+        <button class="btn" id="nextBtn" type="button">Дальше</button>
+      </div>
+    </div>
+
+    <div class="joke" id="joke" hidden></div>
+  </section>
+
+  <!-- ЭКРАН 3. Итог -->
+  <section class="screen final" id="scrFinal" hidden>
+    <div class="card verdict">
+      <div class="medal" id="fMedal">🎩</div>
+      <p class="kicker">Ты —</p>
+      <h2 id="fTitle">Купец</h2>
+      <p class="f-text" id="fText"></p>
+
+      <div class="total"><b id="fScore">0</b><span>из 10 000 баллов</span></div>
+      <p class="tier" id="fTier"></p>
+
+      <div class="stats">
+        <div><b id="sUnder">0</b><small>занизил</small></div>
+        <div><b id="sOk">0</b><small>в точку</small></div>
+        <div><b id="sOver">0</b><small>завысил</small></div>
+      </div>
+      <p class="money" id="fMoney"></p>
+      <div class="strip" id="fStrip"></div>
+
+      <div class="btnrow">
+        <button class="btn" id="againBtn" type="button">Сыграть ещё</button>
+        <button class="btn ghost" id="shareBtn" type="button">Поделиться</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
